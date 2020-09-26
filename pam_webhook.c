@@ -166,6 +166,7 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
 		char* data;
 		data = replaceWord(config.json_data, "PUBLIC_CODE", public_code); 
 		data = replaceWord(data, "PRIVATE_CODE", code);
+		data = replaceWord(data, "USERNAME", username);
 
 		struct curl_slist *list = NULL;
 		curl_easy_setopt(curl, CURLOPT_URL, config.url);

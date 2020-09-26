@@ -11,7 +11,7 @@ Webhook PAM Module
 
 ## TODO
 
-* Template engine for JSON data sent to the webhook target. So far only PUBLIC_CODE, PRIVATE_CODE is implemented. Having SOURCE_IP, DESTINATION_IP, HOSTNAME, USERNAME, AUTH_METHOD would be nice for audit purposes
+* Template engine for JSON data sent to the webhook target. So far PUBLIC_CODE, PRIVATE_CODE and USERNAME are implemented. Having SOURCE_IP, DESTINATION_IP, HOSTNAME, AUTH_METHOD would be nice for audit purposes
 * Proxy Configuration for Webhook Call
 * Logic when request times out
 * Optional emergency backdoor (?)
