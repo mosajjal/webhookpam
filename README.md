@@ -17,3 +17,6 @@ Webhook PAM Module
 * Optional emergency backdoor (?)
 * Customizable Echo message in config file
   
+
+## Reference
+[ben servoz's blog](https://ben.akrin.com/2FA/2ndfactor.c)

@@ -118,26 +118,6 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
 	char *input ;
 	struct pam_message msg[1],*pmsg[1];
 	struct pam_response *resp;
-	
-	/* retrieving parameters */
-	// int got_base_url  = 0 ;
-	// int got_code_size = 0 ;
-	// unsigned int code_size = 0 ;
-	// char base_url[256] ;
-	// for( i=0 ; i<argc ; i++ ) {
-	// 	if( strncmp(argv[i], "base_url=", 9)==0 ) {
-	// 		strncpy( base_url, argv[i]+9, 256 ) ;
-	// 		got_base_url = 1 ;
-	// 	} else if( strncmp(argv[i], "code_size=", 10)==0 ) {
-	// 		char temp[256] ;
-	// 		strncpy( temp, argv[i]+10, 256 ) ;
-	// 		code_size = atoi( temp ) ;
-	// 		got_code_size = 1 ;
-	// 	}
-	// }
-	// if( got_base_url==0 || got_code_size==0 ) {
-	// 	return PAM_AUTH_ERR ;
-	// }
 
 	char conf_path[256] ;
 	int got_conf_path = 0;
@@ -186,13 +166,6 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
 		char* data;
 		data = replaceWord(config.json_data, "PUBLIC_CODE", public_code); 
 		data = replaceWord(data, "PRIVATE_CODE", code);
-
-		// char data[code_size + 44];
-		// strcpy( data, "{\"text\":\"SSH MFA CODE for session ") ;
-		// strcat( data, public_code ) ;
-		// strcat( data, ": " ) ;
-		// strcat( data, code ) ;
-		// strcat( data, "\"}" ) ;
 
 		struct curl_slist *list = NULL;
 		curl_easy_setopt(curl, CURLOPT_URL, config.url);
