@@ -1,12 +1,11 @@
 [general]
 secret_code_size=8
 public_code_size=6
-
 ; todo
 authfail_on_httpfail=no
 
 [webhook]
-; url=http://127.0.0.1:8080
+url=
 ; allowed variables: PUBLIC_CODE, PRIVATE_CODE. Todo: SOURCE_IP, DESTINATION_IP, HOSTNAME, USERNAME, AUTH_METHOD
 json_data={"text":"SSH MFA CODE for session‌ PUBLIC_CODE: PRIVATE_CODE "}
 

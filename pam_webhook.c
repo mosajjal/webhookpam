@@ -8,10 +8,86 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inc/ini.h>
+#include <stdbool.h>
+#include "inc/ini.c"
 #include <curl/curl.h>
 #include <security/pam_appl.h>
 #include <security/pam_modules.h>
+
+
+typedef struct
+{
+    int secret_code_size;
+	int public_code_size;
+	int timeout_seconds;
+	bool authfail_on_httpfail;
+    const char* url;
+    const char* json_data;
+} configuration;
+
+
+static int handler(void* config_profile, const char* section, const char* name,
+                   const char* value)
+{
+    configuration* pconfig = (configuration*)config_profile;
+
+    #define MATCH(s, n) strcmp(section, s) == 0 && strcmp(name, n) == 0
+    if (MATCH("general", "secret_code_size")) {
+        pconfig->secret_code_size = atoi(value);
+    } else if (MATCH("general", "public_code_size")) {
+        pconfig->public_code_size = atoi(value);
+    } else if (MATCH("general", "authfail_on_httpfail")) {
+        pconfig->json_data = value;
+    } else if (MATCH("webhook", "url")) {
+        pconfig->url = strdup(value);
+    } else if (MATCH("webhook", "json_data")) {
+        pconfig->json_data = strdup(value);
+    } else {
+        return 0;  /* unknown section/name, error */
+    }
+    return 1;
+}
+
+
+// Function to replace a string with another string
+char* replaceWord(const char* s, const char* oldW, 
+                  const char* newW) 
+{ 
+    char* result; 
+    int i, cnt = 0; 
+    int newWlen = strlen(newW); 
+    int oldWlen = strlen(oldW); 
+  
+    // Counting the number of times old word 
+    // occur in the string 
+    for (i = 0; s[i] != '\0'; i++) { 
+        if (strstr(&s[i], oldW) == &s[i]) { 
+            cnt++; 
+  
+            // Jumping to index after the old word. 
+            i += oldWlen - 1; 
+        } 
+    } 
+  
+    // Making new string of enough length 
+    result = (char*)malloc(i + cnt * (newWlen - oldWlen) + 1); 
+  
+    i = 0; 
+    while (*s) { 
+        // compare the substring with the result 
+        if (strstr(s, oldW) == s) { 
+            strcpy(&result[i], newW); 
+            i += newWlen; 
+            s += oldWlen; 
+        } 
+        else
+            result[i++] = *s++; 
+    } 
+  
+    result[i] = '\0'; 
+    return result; 
+} 
+
 
 /* expected hook */
 PAM_EXTERN int pam_sm_setcred( pam_handle_t *pamh, int flags, int argc, const char **argv ) {
@@ -44,24 +120,41 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
 	struct pam_response *resp;
 	
 	/* retrieving parameters */
-	int got_base_url  = 0 ;
-	int got_code_size = 0 ;
-	unsigned int code_size = 0 ;
-	char base_url[256] ;
+	// int got_base_url  = 0 ;
+	// int got_code_size = 0 ;
+	// unsigned int code_size = 0 ;
+	// char base_url[256] ;
+	// for( i=0 ; i<argc ; i++ ) {
+	// 	if( strncmp(argv[i], "base_url=", 9)==0 ) {
+	// 		strncpy( base_url, argv[i]+9, 256 ) ;
+	// 		got_base_url = 1 ;
+	// 	} else if( strncmp(argv[i], "code_size=", 10)==0 ) {
+	// 		char temp[256] ;
+	// 		strncpy( temp, argv[i]+10, 256 ) ;
+	// 		code_size = atoi( temp ) ;
+	// 		got_code_size = 1 ;
+	// 	}
+	// }
+	// if( got_base_url==0 || got_code_size==0 ) {
+	// 	return PAM_AUTH_ERR ;
+	// }
+
+	char conf_path[256] ;
+	int got_conf_path = 0;
 	for( i=0 ; i<argc ; i++ ) {
-		if( strncmp(argv[i], "base_url=", 9)==0 ) {
-			strncpy( base_url, argv[i]+9, 256 ) ;
-			got_base_url = 1 ;
-		} else if( strncmp(argv[i], "code_size=", 10)==0 ) {
-			char temp[256] ;
-			strncpy( temp, argv[i]+10, 256 ) ;
-			code_size = atoi( temp ) ;
-			got_code_size = 1 ;
+		if( strncmp(argv[i], "conf_path=", 10)==0 ) {
+			strncpy( conf_path, argv[i]+10, 256 ) ;
+			got_conf_path = 1 ;
 		}
 	}
-	if( got_base_url==0 || got_code_size==0 ) {
-		return PAM_AUTH_ERR ;
-	}
+	if(!got_conf_path) return PAM_AUTH_ERR ;
+
+
+	configuration config;
+    if (ini_parse(conf_path, handler, &config) < 0) {
+        printf("Can't load the config\n");
+        return PAM_AUTH_ERR ;
+    }
 
 	/* getting the username that was used in the previous authentication */
 	const char *username ;
@@ -70,44 +163,47 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
 	}
 
 	/* generating a random one-time code */
-	char code[code_size+1] ;
+	char code[config.secret_code_size+1] ;
   	unsigned int random_number ;
 	FILE *urandom = fopen( "/dev/urandom", "r" ) ;
 	fread( &random_number, sizeof(random_number), 1, urandom ) ;
-	fclose( urandom ) ;
-	snprintf( code, code_size+1,"%u", random_number ) ;
-	code[code_size] = 0 ; // because it needs to be null terminated
+	snprintf( code, config.secret_code_size+1,"%u", random_number ) ;
+	code[config.secret_code_size] = 0 ; // because it needs to be null terminated
 
 
-    char public_code[6+1] ;
+    char public_code[config.public_code_size+1] ;
   	unsigned int rn ;
-	FILE *urandom_pub = fopen( "/dev/urandom", "r" ) ;
-	fread( &rn, sizeof(rn), 1, urandom_pub ) ;
-	fclose( urandom_pub ) ;
-	snprintf( public_code, 6+1,"%u", rn ) ;
-	public_code[6] = 0 ; // because it needs to be null terminated
+	fread( &rn, sizeof(rn), 1, urandom ) ;
+	fclose( urandom ) ;
+	snprintf( public_code, config.public_code_size+1,"%u", rn ) ;
+	public_code[config.public_code_size] = 0 ; // because it needs to be null terminated
 
-        CURL *curl = curl_easy_init();
-        if(curl) {
-        char data[code_size + 44];
-        strcpy( data, "{\"text\":\"SSH MFA CODE for session ") ;
-        strcat( data, public_code ) ;
-        strcat( data, ": " ) ;
-        strcat( data, code ) ;
-        strcat( data, "\"}" ) ;
-        struct curl_slist *list = NULL;
-        
-        curl_easy_setopt(curl, CURLOPT_URL, base_url);
-        /* size of the POST data */
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data));
-        /* pass in a pointer to the data - libcurl will not copy */
+	CURL *curl = curl_easy_init();
 
-        list = curl_slist_append(list, "Content-Type:application/json");
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
 
-        curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
-        curl_easy_perform(curl);
-        }
+	if(curl) {
+
+		char* data;
+		data = replaceWord(config.json_data, "PUBLIC_CODE", public_code); 
+		data = replaceWord(data, "PRIVATE_CODE", code);
+
+		// char data[code_size + 44];
+		// strcpy( data, "{\"text\":\"SSH MFA CODE for session ") ;
+		// strcat( data, public_code ) ;
+		// strcat( data, ": " ) ;
+		// strcat( data, code ) ;
+		// strcat( data, "\"}" ) ;
+
+		struct curl_slist *list = NULL;
+		curl_easy_setopt(curl, CURLOPT_URL, config.url);
+		/* size of the POST data */
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data));
+		/* pass in a pointer to the data - libcurl will not copy */
+		list = curl_slist_append(list, "Content-Type:application/json");
+		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, list);
+		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+		curl_easy_perform(curl);
+	}
 
     char prompt_data[29];
     strcpy(prompt_data, "OTA code for session ") ;
