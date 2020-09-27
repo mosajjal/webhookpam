@@ -1,4 +1,4 @@
-# webhookpam
+# Webhook PAM
 Webhook PAM Module 
 
 ## Build requirements
