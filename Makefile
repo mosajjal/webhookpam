@@ -6,7 +6,7 @@ default:
 	$(LD) -lcurl -lc -lpam -shared -o pam_webhook.so pam_webhook.o
 
 install:
-	cp pam_webhook.so /lib/security/
+	cp pam_webhook.so /lib64/security/
 
 clean:
 	rm pam_webhook.so

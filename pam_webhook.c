@@ -136,11 +136,22 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
         return PAM_AUTH_ERR ;
     }
 
-	/* getting the username that was used in the previous authentication */
+	// /* getting the username that was used in the previous authentication */
+	// const char *username ;
+    // 	if( (retval = pam_get_user(pamh,&username,"login: "))!=PAM_SUCCESS ) {
+	// 	return retval ;
+	// }
+
+    /* Check user */
 	const char *username ;
-    	if( (retval = pam_get_user(pamh,&username,"login: "))!=PAM_SUCCESS ) {
-		return retval ;
-	}
+    if (pam_get_user(pamh, &username, NULL) != PAM_SUCCESS ||
+        (getpwnam(username)) == NULL) {
+        return PAM_USER_UNKNOWN;
+    }
+
+	char *source_ip;
+    pam_get_item (pamh, PAM_RHOST, (void **) &source_ip);
+
 
 	/* generating a random one-time code */
 	char code[config.secret_code_size+1] ;
@@ -167,6 +178,7 @@ PAM_EXTERN int pam_sm_authenticate( pam_handle_t *pamh, int flags,int argc, cons
 		data = replaceWord(config.json_data, "PUBLIC_CODE", public_code); 
 		data = replaceWord(data, "PRIVATE_CODE", code);
 		data = replaceWord(data, "USERNAME", username);
+		data = replaceWord(data, "SOURCE_IP", source_ip);
 
 		struct curl_slist *list = NULL;
 		curl_easy_setopt(curl, CURLOPT_URL, config.url);
