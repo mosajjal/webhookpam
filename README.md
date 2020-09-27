@@ -48,6 +48,7 @@ please refer to [Arch Wiki](https://wiki.archlinux.org/index.php/OpenSSH#Two-fac
 * Logic when request times out
 * Optional emergency backdoor (?)
 * Customizable Echo message in config file
+* Test in LDAP Auth environment
   
 
 ## Reference
