@@ -9,10 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
-#include "inc/ini.c"
+
 #include <curl/curl.h>
 #include <security/pam_appl.h>
 #include <security/pam_modules.h>
+#include <pwd.h>
+#include <sys/types.h>
+
+#include "inc/ini.c"
 
 typedef struct
 {
@@ -167,7 +171,7 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
 	}
 
 	char *source_ip;
-	pam_get_item(pamh, PAM_RHOST, (void **)&source_ip);
+	pam_get_item(pamh, PAM_RHOST, (const void **)&source_ip);
 
 	/* generating a random one-time code */
 	char code[config.secret_code_size + 1];
