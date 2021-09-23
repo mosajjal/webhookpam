@@ -58,7 +58,7 @@ please refer to [Arch Wiki](https://wiki.archlinux.org/index.php/OpenSSH#Two-fac
   - [x] SOURCE_IP
   - [ ] DESTINATION_IP
   - [ ] AUTH_METHOD
-- [ ] Proxy Configuration for Webhook Call
+- [x] Proxy Configuration for Webhook Call
 - [ ] Logic when request times out
 - [ ] Optional emergency backdoor (?)
 - [ ] Customizable Echo message in config file

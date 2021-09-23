@@ -26,6 +26,8 @@ typedef struct
 	bool authfail_on_httpfail;
 	const char *url;
 	const char *json_data;
+	const char *proxy;
+
 } configuration;
 
 static int handler(void *config_profile, const char *section, const char *name,
@@ -45,6 +47,10 @@ static int handler(void *config_profile, const char *section, const char *name,
 	else if (MATCH("general", "authfail_on_httpfail"))
 	{
 		pconfig->json_data = value;
+	}
+	else if (MATCH("general", "proxy"))
+	{
+		pconfig->proxy = strdup(value);
 	}
 	else if (MATCH("webhook", "url"))
 	{
@@ -201,6 +207,11 @@ PAM_EXTERN int pam_sm_authenticate(pam_handle_t *pamh, int flags, int argc, cons
 
 		struct curl_slist *list = NULL;
 		curl_easy_setopt(curl, CURLOPT_URL, config.url);
+		/* add proxy option if configured (this line must be at top) */
+		if (config.proxy)
+		{
+			curl_easy_setopt(curl, CURLOPT_PROXY, config.proxy);
+		}
 		/* size of the POST data */
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, strlen(data));
 		/* pass in a pointer to the data - libcurl will not copy */
