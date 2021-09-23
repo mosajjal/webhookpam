@@ -63,7 +63,7 @@ please refer to [Arch Wiki](https://wiki.archlinux.org/index.php/OpenSSH#Two-fac
 - [ ] Optional emergency backdoor (?)
 - [ ] Customizable Echo message in config file
 - [ ] Test in LDAP Auth environment
-- [ ] Better install and uninstall support in the `Makefie`
+- [x] Better install and uninstall support in the `Makefie`
 
 ## Reference
 [ben servoz's blog](https://ben.akrin.com/2FA/2ndfactor.c)
