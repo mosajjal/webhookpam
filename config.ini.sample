@@ -11,10 +11,13 @@ url=
 
 ; allowed variables: PUBLIC_CODE, PRIVATE_CODE, USERNAME. Todo: SOURCE_IP, DESTINATION_IP, HOSTNAME, AUTH_METHOD
 ; MS teams template
-json_data={"text":"SSH MFA CODE for session‌ PUBLIC_CODE: PRIVATE_CODE "}
+; json_data={"text":"SSH MFA CODE for session‌ PUBLIC_CODE: PRIVATE_CODE "}
 
 ; Discord template
-json_data={"username": "your_user", "content": "SSH MFA code for session‌ PUBLIC_CODE, user USERNAME, IP: SOURCE_IP: PRIVATE_CODE "}
+; json_data={"username": "your_username", "content": "SSH MFA code for session‌ PUBLIC_CODE, user USERNAME, IP: SOURCE_IP: PRIVATE_CODE "}
+
+; Telegram template
+; json_data={"chat_id": "your_chat_id", "text": "SSH MFA code for session‌ PUBLIC_CODE, user USERNAME, IP: SOURCE_IP: PRIVATE_CODE "}
 
 ; todo
 timeout_seconds=10
