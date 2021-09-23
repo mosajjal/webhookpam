@@ -3,13 +3,21 @@ Webhook PAM Module
 
 ## Build requirements
 
-* `libcurl` headers. in RHEL/Centos: `yum install libcurl-devel`
-* `pam`  headers. in RHEL/Centos: `yum install pam-devel`
+`libcurl` headers:
+
+* RHEL/Centos: `yum install libcurl-devel`
+* Debian/Ubuntu: `apt-get install libcurl4-openssl-dev`
+* Arch: `pacman -S curl`
+
+`pam` headers:
+* RHEL/Centos: `yum install pam-devel`
+* Debian/Ubuntu: `apt-get install libpam0g-dev`
+* Arch: `pacman -S pam`
 
 ## How to use
 
-* Create a config.ini, using config.ini.sample as a template
-* build the .so file using `make` and install using `sudo make install`. If `sudo make install` gives `not a directory` error, you can manually copy the .so file in the same folder as your distro's pam module. For RHEL/CentOS, it's located at `/lib64/security/`.
+* Create a `config.ini`, using `config.ini`.sample as a template.
+* build the `.so` file using `make` and install using `sudo make install`. If `sudo make install` gives `not a directory` error, you can manually copy the `.so` file in the same folder as your distro's pam module. In general `/lib/security/` and `/lib64/security/`.
 * Add the following line to `/etc/security/sshd`
   * `auth required pam_webhook.so conf_path=/path/to/config.ini`
 
@@ -43,13 +51,19 @@ please refer to [Arch Wiki](https://wiki.archlinux.org/index.php/OpenSSH#Two-fac
 
 ## TODO
 
-* Template engine for JSON data sent to the webhook target. So far PUBLIC_CODE, PRIVATE_CODE, USERNAME and SOURCE_IP are implemented. Having DESTINATION_IP, and AUTH_METHOD would be nice for audit purposes
-* Proxy Configuration for Webhook Call
-* Logic when request times out
-* Optional emergency backdoor (?)
-* Customizable Echo message in config file
-* Test in LDAP Auth environment
-  
+- [ ] Template engine for JSON data sent to the webhook target.
+  - [x] PUBLIC_CODE
+  - [x] PRIVATE_CODE
+  - [x] USERNAME 
+  - [x] SOURCE_IP
+  - [ ] DESTINATION_IP
+  - [ ] AUTH_METHOD
+- [ ] Proxy Configuration for Webhook Call
+- [ ] Logic when request times out
+- [ ] Optional emergency backdoor (?)
+- [ ] Customizable Echo message in config file
+- [ ] Test in LDAP Auth environment
+- [x] Better install and uninstall support in the `Makefie`
 
 ## Reference
 [ben servoz's blog](https://ben.akrin.com/2FA/2ndfactor.c)
